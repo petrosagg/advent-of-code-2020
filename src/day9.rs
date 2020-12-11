@@ -47,9 +47,11 @@ pub fn second() {
 
     for (a_sum, a_idx) in prefix_sum.into_iter().zip(1..) {
         if let Some(b_idx) = sums.get(&(a_sum - invalid)) {
-            let mut region = v[(*b_idx as usize)..(a_idx as usize)].to_vec();
-            region.sort();
-            println!("{}", region[0] + region[region.len() - 1 ]);
+            let region = &v[(*b_idx as usize)..(a_idx as usize)];
+
+            let min = region.iter().min().unwrap();
+            let max = region.iter().max().unwrap();
+            println!("{}", min + max);
             break;
         }
     }
