@@ -1,7 +1,7 @@
 use crate::lib::get_input;
 
 pub fn first() {
-    let mut input = get_input(13, 1, |l| l.to_string());
+    let input = get_input(13, 1, |l| l.to_string());
 
     let earliest = input[0].parse::<i64>().unwrap();
     let buses = input[1].split(',').filter_map(|x| x.parse::<i64>().ok()).collect::<Vec<_>>();
@@ -22,7 +22,7 @@ pub fn first() {
 }
 
 pub fn second() {
-    let mut input = get_input(13, 1, |l| l.to_string());
+    let input = get_input(13, 1, |l| l.to_string());
 
     let buses = input[1]
         .split(',')
@@ -48,7 +48,7 @@ pub fn second() {
     let mut offset = 1u64;
     let mut multiple = 1u64;
     let mut total_diff = 0;
-    let mut best_guess = 0;
+    let mut best_guess;
     for s in buses.windows(2) {
         let (id, _) = s[0];
         let (next_id, diff) = s[1];

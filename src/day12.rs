@@ -8,7 +8,7 @@ static DIRECTIONS: &[(i64, i64); 4] = &[
 ];
 
 pub fn first() {
-    let mut input = get_input(12, 1, |l| l.to_string());
+    let input = get_input(12, 1, |l| l.to_string());
 
     let mut x = 0i64;
     let mut y = 0i64;
@@ -42,7 +42,7 @@ pub fn first() {
 }
 
 pub fn second() {
-    let mut input = get_input(12, 1, |l| l.to_string());
+    let input = get_input(12, 1, |l| l.to_string());
 
     let mut w_x = 10i64;
     let mut w_y = 1i64;
