@@ -18,6 +18,7 @@ mod day13;
 mod day17;
 mod day18;
 mod day20;
+mod day21;
 
 fn main() {
     // day1::first();
@@ -54,5 +55,6 @@ fn main() {
     // day18::first();
     // day18::second();
     // day20::first();
-    day20::first();
+    // day20::first();
+    day21::first();
 }
