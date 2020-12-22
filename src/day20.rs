@@ -179,7 +179,7 @@ pub fn first() {
     let mut image: Vec<Vec<bool>> = vec![vec![]; (tile_size - 2) * size];
 
     for (i, row) in board.iter().enumerate() {
-        for (j, id) in row.iter().enumerate() {
+        for id in row {
             let tile = tiles.get(&id).unwrap();
 
             for (ii, row_tile) in tile.data[1..tile_size-1].iter().enumerate() {

@@ -55,10 +55,10 @@ fn main() {
     // day16::first();
     // day17::first();
     // day18::first();
-    // day18::second();
+    day18::second();
     // day19::first();
     // day20::first();
     // day20::first();
     // day21::first();
-    day22::second();
+    // day22::second();
 }

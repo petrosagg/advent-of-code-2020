@@ -1,5 +1,7 @@
 use crate::lib::get_input;
+use crate::lib::get_input_filter;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug)]
 enum Op {
@@ -121,89 +123,87 @@ pub fn second() {
     dbg!(sum);
 }
 
-pub fn second_new() {
-    #[derive(Debug)]
-    enum Op {
-        Mask(u64, u64),
-        Set(u64, u64),
+#[derive(Clone,Copy)]
+struct AddrSpace (Option<(u64, u64)>);
+
+impl AddrSpace {
+    fn intersect(&self, other: Self) -> Self {
+        match (self.0, other.0) {
+            (Some((addr_a, mask_a)), Some((addr_b, mask_b))) => {
+                let addr_a = addr_a & !(mask_b);
+                let addr_b = addr_b & !(mask_a);
+                if addr_a == addr_b {
+                    Self(Some((addr_a, mask_a & mask_b)))
+                } else {
+                    Self(None)
+                }
+            }
+            // Intersection with an empty set is the empty set
+            _ => Self(None)
+        }
     }
 
+    fn size(&self) -> u64 {
+        match self.0 {
+            Some((_, mask)) => 1 << mask.count_ones(),
+            None => 0
+        }
+    }
+}
 
-    let input = get_input(14, 0, |l| {
-        let mut i = l.split(" = ");
-        let op = i.next().unwrap();
-        let arg = i.next().unwrap();
-        match op {
-            "mask" => {
-                let or_mask = arg.replace('X', "0");
-                let or_mask = u64::from_str_radix(&or_mask, 2).unwrap();
-
-                let float_mask = arg.replace('1', "0").replace('X', "1");
-                let float_mask = u64::from_str_radix(&float_mask, 2).unwrap();
-                Op::Mask(or_mask, float_mask)
+impl fmt::Debug for AddrSpace {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.0 {
+            Some((addr, mask)) => {
+                f.write_fmt(format_args!("addr={:036b} mask={:036b}", addr, mask))
             }
-            _ => {
-                let (_, addr) = op.split_at(4);
-                let addr = addr[..addr.len()-1].parse::<u64>().unwrap();
-                let arg = arg.parse::<u64>().unwrap();
-                Op::Set(addr, arg)
+            None => {
+                f.write_str("<empty>")
+            }
+        }
+    }
+}
+
+
+pub fn second_new() {
+    let assignments = get_input_filter(14, 0, {
+        let mut cur_float_mask = 0;
+        let mut cur_or_mask = 0;
+
+        move |l| {
+            let mut i = l.split(" = ");
+            let op = i.next().unwrap();
+            let arg = i.next().unwrap();
+            match op {
+                "mask" => {
+                    let or_mask = arg.replace('X', "0");
+                    cur_or_mask = u64::from_str_radix(&or_mask, 2).unwrap();
+
+                    let float_mask = arg.replace('1', "0").replace('X', "1");
+                    cur_float_mask = u64::from_str_radix(&float_mask, 2).unwrap();
+                    None
+                }
+                _ => {
+                    let (_, addr) = op.split_at(4);
+                    let addr = addr[..addr.len()-1].parse::<u64>().unwrap();
+                    let addr = (addr | cur_or_mask) & !(cur_float_mask);
+
+                    let value = arg.parse::<u64>().unwrap();
+                    Some((AddrSpace(Some((addr, cur_float_mask))), value))
+                }
             }
         }
     });
 
-    let mut operations = vec![];
-    let mut cur_float = 0;
-    let mut cur_or_mask = 0;
     let mut acc = 0;
-    for op in input {
-        match op {
-            Op::Mask(or, float) => {
-                cur_or_mask = or;
-                cur_float = float;
-            },
-            Op::Set(addr, value) => {
-                // First, apply the current OR mask and zero out floating bits
-                let addr = (addr | cur_or_mask) & !(cur_float);
-                println!("\naddr: {:036b}", addr);
-                println!("floa: {:036b}", cur_float);
+    for (a, value) in assignments {
+        acc += a.size() * value;
+        for (b, value) in prev_assignments {
 
-                // Now we have to walk the operations backward, cancelling any that overlap. As we
-                // walk backwards, we adjust the effective float mask to know what can still be
-                // affected by previous operations
-                let mut effective_float = cur_float;
-                for (prev_addr, prev_float, prev_value) in operations.iter().rev() {
-                    // The only way to have overlap is for the addresses after zeroing the floating
-                    // bits to equal
-                    println!("\n\tprocessing prev value {}", prev_value);
-                    println!("\tprev_addr float:  {:036b}", prev_float);
-                    println!("\taddr & !prev:     {:036b}", addr & !(prev_float));
-                    println!("\tprev_addr & !eff: {:036b}", prev_addr & !(effective_float));
-                    if (addr & !(prev_float)) == prev_addr & !(effective_float) {
-                        // Ok, so now we need to figure out how much of the previous operation we
-                        // need to undo. This is the overlap or their masks
-                        let overlap = effective_float & prev_float;
-                        println!("\tremoving {} * {}", (1 << overlap.count_ones()), prev_value);
-                        acc -= (1 << overlap.count_ones()) * prev_value;
 
-                        // We leave unaffected floating bits to maybe cancel other operations
-                        effective_float = effective_float & !(prev_float);
-
-                        // We cancelled everything there is to cancel
-                        if effective_float == 0 {
-                            break;
-                        }
-                    }
-                }
-
-                // Finally, add the current value for all the possible addresses. We do this last
-                // to avoid possible overflowing
-                println!("\tadding {} * {}", (1 << cur_float.count_ones()), value);
-                acc += (1 << cur_float.count_ones()) * value;
-
-                operations.push((addr, cur_float, value));
-            }
         }
     }
+    dbg!(assignments);
 
-    dbg!(acc);
+    // dbg!(acc);
 }

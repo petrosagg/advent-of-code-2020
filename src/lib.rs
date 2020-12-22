@@ -1,6 +1,11 @@
 use std::fs;
 use itertools::Itertools;
 
+pub fn get_input_raw(day: u64, n: u64) -> String {
+    let path = format!("data/day{}/{}", day, n);
+    fs::read_to_string(&path).unwrap()
+}
+
 pub fn get_input<F, T>(day: u64, n: u64, func: F) -> Vec<T>
     where F: FnMut(&str) -> T
 {
